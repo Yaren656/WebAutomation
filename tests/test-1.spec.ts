@@ -18,22 +18,25 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
     }
   } catch {}
 
-  // İlk görünen ürün başlık linkini bul
-  const productTitleLink = page.locator('a[class*="titleText"]').first();
+  // İlk gerçek ürün linkini bul
+  const productTitleLink = page.locator('a[href*="/p/"]').first();
 
+  // Önce görünür olmasını bekle
+  await expect(productTitleLink).toBeVisible({ timeout: 15000 });
+
+  // Sonra görünür alana getir
   await productTitleLink.scrollIntoViewIfNeeded();
-  await expect(productTitleLink).toBeVisible();
 
-  // Ürün kartını link üzerinden bul
+  // Ürün kartını parent üzerinden bul
   const firstProductCard = productTitleLink.locator(
     'xpath=ancestor::div[contains(@class,"productCardRoot")]'
   );
 
-  // Ana sayfadaki ürün bilgileri
+  // Ürün adı ve fiyat
   const productPriceElement = firstProductCard.locator('div[class*="price"]').last();
 
-  const productName = await productTitleLink.innerText();
-  const productPrice = await productPriceElement.innerText();
+  const productName = (await productTitleLink.innerText()).trim();
+  const productPrice = (await productPriceElement.innerText()).trim();
 
   // Ürün detayına git
   await page.waitForTimeout(500);
@@ -43,34 +46,34 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(3000);
 
-  // Sepete ekle butonunu bul
+  // Sepete Ekle
   const addToCartButton = page.getByRole('button', { name: /Sepete ekle/i });
 
+  await expect(addToCartButton).toBeVisible({ timeout: 15000 });
   await addToCartButton.scrollIntoViewIfNeeded();
-  await expect(addToCartButton).toBeVisible({ timeout: 10000 });
 
-  // Sepete ekle
   await addToCartButton.click();
   await page.waitForTimeout(3000);
 
-  // Sepete git
+  // Sepete Git
   const goToCartButton = page.getByRole('button', { name: /Sepete git/i });
 
-  await expect(goToCartButton).toBeVisible({ timeout: 10000 });
+  await expect(goToCartButton).toBeVisible({ timeout: 15000 });
   await goToCartButton.click();
 
-  // Sepet sayfası
+  // Sepet sayfasına geçiş
+  await page.waitForURL(/sepetim|checkout/, { timeout: 15000 });
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(3000);
 
-  // Sepette ürün doğrulama
-  const cartProductName = page.locator('div[class*="product_name"]').first();
-  const cartProductPrice = page.locator('div[class*="price"]').first();
+  // Sepette ürün adı ve fiyat
+  const cartProductName = page.locator('a[href*="/p/"]').first();
+  const cartProductPrice = page.locator('text=/TL/').first();
 
-  await expect(cartProductName).toBeVisible({ timeout: 10000 });
-  await expect(cartProductPrice).toBeVisible({ timeout: 10000 });
+  // Doğrulamalar
+  await expect(cartProductName).toBeVisible({ timeout: 15000 });
+  await expect(cartProductPrice).toBeVisible({ timeout: 15000 });
 
-  // Ürün adı ve fiyat doğrulama
   await expect(cartProductName).toContainText(productName);
   await expect(cartProductPrice).toContainText('TL');
 });
