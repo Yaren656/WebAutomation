@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test('hepsiburada product selection and checkout navigation', async ({ page }) => {
+  test.setTimeout(60000);
   await page.goto('https://www.hepsiburada.com/');
   await page.waitForTimeout(3000);
+  
 
   // Kabul Et varsa tıkla
   const acceptButton = page.getByText('Kabul Et', { exact: true });
