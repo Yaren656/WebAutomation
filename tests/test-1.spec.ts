@@ -40,12 +40,8 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
   // İlk ürün kartındaki başlık linki
   const productTitleLink = firstProductCard.locator('a[class*="titleText"]').first();
 
-  // Fiyat
-  const productPriceElement = firstProductCard.locator('text=/TL/').first();
-
   // Bilgileri al
-  const productName = await productTitleLink.innerText();
-  //const productPrice = await productPriceElement.innerText();
+  const productName = await productTitleLink.innerText(); 
 
   // Ürüne tıkla
   await productTitleLink.click();
