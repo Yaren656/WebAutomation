@@ -57,9 +57,10 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
 
   // Buton görünene kadar lazy load scroll
   retries = 0;
-  while (!(await addToCartButton.isVisible().catch(() => false)) && retries < 10) {
-    await page.evaluate(() => {
-      window.scrollBy(0, window.innerHeight);
+  while (!(await addToCartButton.isVisible().catch(() => false)) && retries < 10) { // Buton görünene kadar 
+  // kaydırmaya devam et
+    await page.evaluate(() => { //sayfa kaydırma işlemi
+      window.scrollBy(0, window.innerHeight); //bir ekran boyu kadar kaydır
     });
 
     await page.waitForTimeout(1500);
@@ -78,8 +79,9 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
 
   // Sepet sayfası
   await page.waitForURL(/sepetim|checkout/, { timeout: 15000 });
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(3000);
+  await page.waitForLoadState('domcontentloaded'); //domcontentloaded ile sayfanın temel 
+  // yapısının yüklendiğinden emin ol
+  await page.waitForTimeout(3000); // Sepet sayfasının tam yüklenmesi için ek bekleme
 
   // Sepet ürün bilgileri
   const cartProductName = page.locator('div[class*="product_name"] a').first();
