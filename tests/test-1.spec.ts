@@ -21,7 +21,8 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
   let firstProductCard = page.locator('div[class*="productCardRoot"]').first();
 
   // Lazy load için ürün görünene kadar sayfa sonuna doğru kaydır
-  while (!(await firstProductCard.isVisible().catch(() => false))) {
+  let retries = 0;
+  while (!(await firstProductCard.isVisible().catch(() => false)) && retries < 10) {
     await page.evaluate(() => {
       window.scrollBy(0, window.innerHeight);
     });
@@ -31,6 +32,7 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
 
     // Locator yeniden kontrol
     firstProductCard = page.locator('div[class*="productCardRoot"]').first();
+    retries++;
   }
 
   // İlk ürün kartı görünür olduğunda içine git
@@ -54,12 +56,14 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
   const addToCartButton = page.getByRole('button', { name: /Sepete ekle/i });
 
   // Buton görünene kadar lazy load scroll
-  while (!(await addToCartButton.isVisible().catch(() => false))) {
+  retries = 0;
+  while (!(await addToCartButton.isVisible().catch(() => false)) && retries < 10) {
     await page.evaluate(() => {
       window.scrollBy(0, window.innerHeight);
     });
 
     await page.waitForTimeout(1500);
+    retries++;
   }
 
   // Sepete ekle
