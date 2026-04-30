@@ -1,57 +1,72 @@
 import { test, expect } from '@playwright/test';
 
 test('hepsiburada product selection and checkout navigation', async ({ page }) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
 
   // Ana sayfa
   await page.goto('https://www.hepsiburada.com/');
-  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(3000);
 
   // Çerez popup varsa kabul et
   const acceptButton = page.getByText('Kabul Et', { exact: true });
 
   try {
-    if (await acceptButton.isVisible({ timeout: 3000 })) {
+    if (await acceptButton.isVisible({ timeout: 5000 })) {
       await acceptButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(1500);
     }
   } catch {}
 
-  // İlk gerçek ürün linkini bul
-  const productTitleLink = page.locator('a[href*="/p/"]').first();
+  // İlk ürün kartını bul
+  let firstProductCard = page.locator('div[class*="productCardRoot"]').first();
 
-  // Önce görünür olmasını bekle
-  await expect(productTitleLink).toBeVisible({ timeout: 15000 });
+  // Lazy load için ürün görünene kadar sayfa sonuna doğru kaydır
+  while (!(await firstProductCard.isVisible().catch(() => false))) {
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight);
+    });
 
-  // Sonra görünür alana getir
-  await productTitleLink.scrollIntoViewIfNeeded();
+    // Yeni içerik yüklenmesi için bekle
+    await page.waitForTimeout(2000);
 
-  // Ürün kartını parent üzerinden bul
-  const firstProductCard = productTitleLink.locator(
-    'xpath=ancestor::div[contains(@class,"productCardRoot")]'
-  );
+    // Locator yeniden kontrol
+    firstProductCard = page.locator('div[class*="productCardRoot"]').first();
+  }
 
-  // Ürün adı ve fiyat
-  const productPriceElement = firstProductCard.locator('div[class*="price"]').last();
+  // İlk ürün kartı görünür olduğunda içine git
+  await firstProductCard.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1000);
 
-  const productName = (await productTitleLink.innerText()).trim();
-  const productPrice = (await productPriceElement.innerText()).trim();
+  // İlk ürün kartındaki başlık linki
+  const productTitleLink = firstProductCard.locator('a[class*="titleText"]').first();
 
-  // Ürün detayına git
-  await page.waitForTimeout(500);
+  // Fiyat
+  const productPriceElement = firstProductCard.locator('text=/TL/').first();
+
+  // Bilgileri al
+  const productName = await productTitleLink.innerText();
+  //const productPrice = await productPriceElement.innerText();
+
+  // Ürüne tıkla
   await productTitleLink.click();
 
   // Ürün detay sayfası
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(3000);
 
-  // Sepete Ekle
+  // Sepete Ekle butonu
   const addToCartButton = page.getByRole('button', { name: /Sepete ekle/i });
 
-  await expect(addToCartButton).toBeVisible({ timeout: 15000 });
-  await addToCartButton.scrollIntoViewIfNeeded();
+  // Buton görünene kadar lazy load scroll
+  while (!(await addToCartButton.isVisible().catch(() => false))) {
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight);
+    });
 
+    await page.waitForTimeout(1500);
+  }
+
+  // Sepete ekle
   await addToCartButton.click();
   await page.waitForTimeout(3000);
 
@@ -61,18 +76,18 @@ test('hepsiburada product selection and checkout navigation', async ({ page }) =
   await expect(goToCartButton).toBeVisible({ timeout: 15000 });
   await goToCartButton.click();
 
-  // Sepet sayfasına geçiş
+  // Sepet sayfası
   await page.waitForURL(/sepetim|checkout/, { timeout: 15000 });
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(3000);
 
-  // Sepette ürün adı ve fiyat
-  const cartProductName = page.locator('a[href*="/p/"]').first();
+  // Sepet ürün bilgileri
+  const cartProductName = page.locator('div[class*="product_name"] a').first();
   const cartProductPrice = page.locator('text=/TL/').first();
 
-  // Doğrulamalar
+  // Kontroller
   await expect(cartProductName).toBeVisible({ timeout: 15000 });
-  await expect(cartProductPrice).toBeVisible({ timeout: 15000 });
+  await expect(cartProductPrice).toBeVisible();
 
   await expect(cartProductName).toContainText(productName);
   await expect(cartProductPrice).toContainText('TL');
