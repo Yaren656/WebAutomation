@@ -13,9 +13,6 @@ This repository was created as part of my QA / Test Automation learning journey.
 - Cart page validation
 - Product name and price verification
 
-## In Progress
-### Mobile Automation
-Mobile test scenarios are currently under development.
 
 ## Technologies
 - Playwright
@@ -39,9 +36,6 @@ Bu repo, QA / Test Otomasyonu öğrenme sürecim kapsamında hazırlanmıştır.
 - Sepet doğrulama
 - Ürün adı ve fiyat kontrolü
 
-## Devam Ediyor
-### Mobil Otomasyon
-Mobil test senaryoları geliştirme aşamasındadır.
 
 ## Teknolojiler
 - Playwright
